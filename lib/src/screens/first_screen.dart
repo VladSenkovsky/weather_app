@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_app/src/blocs/main_bloc/main_cubit.dart';
 import 'package:weather_app/globals.dart';
@@ -132,7 +133,15 @@ class _FirstScreenState extends State<FirstScreen> {
           child: generateWeatherRows()[index]),
       onTap: () {
         gVars.tappedIndex = index;
-        BlocProvider.of<MainCubit>(context).toFirstScreen();
+        if (stateIndex == 0) {
+          stateIndex = 1;
+          BlocProvider.of<MainCubit>(
+              context)
+              .toFirstScreen();
+        } else {
+          print(
+              'you are already on that screen');
+        }
       },
     );
   }
@@ -213,6 +222,19 @@ class _FirstScreenState extends State<FirstScreen> {
     return ' ';
     }
 
+  _showThatCopied() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          Future.delayed(Duration(milliseconds: 250), () {
+            Navigator.of(context).pop(true);
+          });
+          return AlertDialog(
+            title: Text('Copied to clipboard', style: TextStyle(fontSize: 20, fontStyle: FontStyle.italic, color: Colors.pink)),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -283,7 +305,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                             listElement[gVars.tappedIndex].dtTxt
                                                 .toString().split(':')[1],
                                         style: TextStyle(
-                                            color: Colors.black, fontSize: 20)),
+                                            color: Colors.black, fontSize: 23, fontStyle: FontStyle.italic)),
                                   )
                                 ])),
                         if (stateIndex == 0) Container(
@@ -475,8 +497,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                                 .temp - 273.15)
                                                 .toStringAsPrecision(2) +
                                                 '\u00B0C  |  ' +
-                                                defineWeatherState(
-                                                    gVars.tappedIndex),
+                                                listElement[gVars.tappedIndex].weather[0].description,
                                             style: TextStyle(fontSize: 30,
                                                 fontWeight: FontWeight.bold,
                                                 fontStyle: FontStyle.italic,
@@ -611,14 +632,19 @@ class _FirstScreenState extends State<FirstScreen> {
                                     child: ConstrainedBox(
                                         constraints: BoxConstraints.expand(),
                                         child: RaisedButton(
+                                            shape: RoundedRectangleBorder(side: BorderSide(color: Colors.black)),
                                             onPressed: () {
                                               print('shared');
-                                              BlocProvider.of<MainCubit>(
-                                                  context)
-                                                  .toFirstScreen();
+                                              Clipboard.setData(ClipboardData(text: 'Weather forecast on ' + listElement[gVars.tappedIndex].dtTxt.toString().split(':')[0] + ':' + listElement[gVars.tappedIndex].dtTxt.toString().split(':')[1] + '\n' +
+                                                  'temperature is ' + (listElement[gVars.tappedIndex].main.temp - 273.15).toStringAsPrecision(2) + 'degrees celsius;\n' +
+                                                  'pressure is ' + listElement[gVars.tappedIndex].main.pressure.toString() + ' hPa;\n' +
+                                                  'humidity is ' + listElement[gVars.tappedIndex].main.humidity.toString() + ' %;\n' +
+                                                  'rainfall is ' + (listElement[gVars.tappedIndex].rain != null ? (listElement[gVars.tappedIndex].rain.the3H.toString() + ' mm') : '0 mm') + ';\n' +
+                                                  'wind is ' + listElement[gVars.tappedIndex].wind.speed.toString() + 'km/h with ' + getDiraction() + ' direction.'));
+                                              _showThatCopied();
                                             },
                                             padding: EdgeInsets.all(0.0),
-                                            child: Text('share')))),
+                                            child: Text('share', style: TextStyle(fontStyle: FontStyle.italic))))),
                               ])),
                         Container(
                           height: 0.1 * MediaQuery
@@ -642,6 +668,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                   child: ConstrainedBox(
                                       constraints: BoxConstraints.expand(),
                                       child: RaisedButton(
+                                          shape: RoundedRectangleBorder(side: BorderSide(color: stateIndex == 1 ? (Colors.pink) : (Colors.black))),
                                           onPressed: () {
                                             print('1st button pressed');
                                             if (stateIndex == 0) {
@@ -655,13 +682,14 @@ class _FirstScreenState extends State<FirstScreen> {
                                             }
                                           },
                                           padding: EdgeInsets.all(0.0),
-                                          child: Text('details')))),
+                                          child: (Text('details', style: TextStyle(fontStyle: FontStyle.italic, color: stateIndex == 1 ? (Colors.pink): (Colors.black))))))),
                               Container(
                                   width: 66.0 * 1.5,
                                   height: 32.0 * 1.5,
                                   child: ConstrainedBox(
                                       constraints: BoxConstraints.expand(),
                                       child: RaisedButton(
+                                        shape: RoundedRectangleBorder(side: BorderSide(color: stateIndex == 0 ? (Colors.pink) : (Colors.black))),
                                           onPressed: () {
                                             print('2nd button pressed');
                                             if (stateIndex == 1) {
@@ -675,7 +703,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                             }
                                           },
                                           padding: EdgeInsets.all(0.0),
-                                          child: Text('forecast')))),
+                                          child: (Text('forecast', style: TextStyle(fontStyle: FontStyle.italic, color: stateIndex == 0 ? (Colors.pink) : (Colors.black))))))),
                             ],
                           ),
                         ),
