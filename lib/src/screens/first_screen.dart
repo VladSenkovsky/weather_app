@@ -7,6 +7,7 @@ import 'package:weather_app/globals.dart';
 import 'package:weather_app/weather.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 class FirstScreen extends StatefulWidget {
   @override
@@ -23,11 +24,40 @@ class _FirstScreenState extends State<FirstScreen> {
   String currentCountry;
   String currentCity;
   List<ListElement> listElement = new List<ListElement>(40);
+  StreamSubscription<DataConnectionStatus> listener;
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+  }
+
+  void _showDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: new Text('Internet connection'),
+            content: new Text('Check your internet connection and restart the app'),
+
+          );
+        }
+    );
+  }
+
+  checkConnection(BuildContext context) async{
+    listener = DataConnectionChecker().onStatusChange.listen((status) {
+      switch (status){
+        case DataConnectionStatus.connected:
+          gVars.connectionIndex = 1;
+          break;
+        case DataConnectionStatus.disconnected:
+          gVars.connectionIndex = 0;
+          _showDialog(context);
+          break;
+      }
+    });
+    return await DataConnectionChecker().connectionStatus;
   }
 
   _getCurrentLocation() {
@@ -263,6 +293,11 @@ class _FirstScreenState extends State<FirstScreen> {
         body: FutureBuilder <List<ListElement>>(
           future: getListElement(),
           builder: (context, listE) {
+            checkConnection(context);
+            if (gVars.connectionIndex == 0) {
+              return Container (
+              );
+            }
             if (listE.connectionState == ConnectionState.none ||
                 listE.connectionState == ConnectionState.waiting) {
               return Container(

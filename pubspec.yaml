@@ -28,6 +28,7 @@ dependencies:
   geolocator: ^5.3.1
   http: ^0.12.2
   dio: ^3.0.10
+  data_connection_checker: ^0.3.4
 
 
   # The following adds the Cupertino Icons font to your application.
