@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +17,8 @@ int stateIndex = 0;
 GVars gVars = new GVars();
 
 class _FirstScreenState extends State<FirstScreen> {
-  final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+  final Geolocator geolocator = Geolocator()
+    ..forceAndroidLocationManager;
   Position _currentPosition;
   String currentCountry;
   String currentCity;
@@ -62,23 +61,25 @@ class _FirstScreenState extends State<FirstScreen> {
 
   String weatherStateImgPath = 'images/weather_states/';
 
-  String defineWeatherState (int index) {
+  String defineWeatherState(int index) {
     String weatherStateIcon = listElement[index].weather[0].icon.toString();
     String weatherState = '';
     if (weatherStateIcon == '11d' || weatherStateIcon == '11n') {
       weatherState = 'lightning';
-    } else if (weatherStateIcon == '09d' || weatherStateIcon == '10d' || weatherStateIcon == '09n' || weatherStateIcon == '10n') {
+    } else if (weatherStateIcon == '09d' || weatherStateIcon == '10d' ||
+        weatherStateIcon == '09n' || weatherStateIcon == '10n') {
       weatherState = 'rain';
-    } else if (weatherStateIcon == '13d'  || weatherStateIcon == '13n') {
+    } else if (weatherStateIcon == '13d' || weatherStateIcon == '13n') {
       weatherState = 'snow';
     } else if (weatherStateIcon == '50d' || weatherStateIcon == '50n') {
       weatherState == 'mist';
-    } else if (weatherStateIcon == '04d' || weatherStateIcon == '04n' || weatherStateIcon == '03d' || weatherStateIcon == '03n') {
+    } else if (weatherStateIcon == '04d' || weatherStateIcon == '04n' ||
+        weatherStateIcon == '03d' || weatherStateIcon == '03n') {
       weatherState = 'cloudy';
     } else if (weatherStateIcon == '01d') {
       weatherState = 'day_clear';
     } else if (weatherStateIcon == '01n') {
-      weatherState ='night_clear';
+      weatherState = 'night_clear';
     } else if (weatherStateIcon == '02d') {
       weatherState = 'day_cloudy';
     } else if (weatherStateIcon == '02n') {
@@ -89,7 +90,8 @@ class _FirstScreenState extends State<FirstScreen> {
 
   Row generateRow(int i) {
     String time = listElement[i].dtTxt.toString().split(" ")[1].split(".")[0];
-    String temperature = (listElement[i].main.temp - 273.15).toStringAsPrecision(2) + '\u00B0C';
+    String temperature = (listElement[i].main.temp - 273.15)
+        .toStringAsPrecision(2) + '\u00B0C';
     String description = listElement[i].weather[0].description.toString();
     String weatherState = defineWeatherState(i);
     return Row(mainAxisSize: MainAxisSize.max, children: [
@@ -100,22 +102,29 @@ class _FirstScreenState extends State<FirstScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-            Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(time.split(':')[0] + ':' + time.split(':')[1], style:
-                    TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-                  Text(description, style: TextStyle(fontStyle: FontStyle.italic, fontSize: 17)),
-                ]),
-            Container(child: Text(temperature, style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, color: Colors.pink, fontSize: 30), textAlign: TextAlign.right)),
-          ]))),
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(time.split(':')[0] + ':' + time.split(':')[1],
+                              style:
+                              TextStyle(
+                                  fontSize: 23, fontWeight: FontWeight.bold)),
+                          Text(description, style: TextStyle(
+                              fontStyle: FontStyle.italic, fontSize: 17)),
+                        ]),
+                    Container(child: Text(temperature, style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.pink,
+                        fontSize: 30), textAlign: TextAlign.right)),
+                  ]))),
     ]);
   }
 
   List<Widget> generateWeatherRows() {
     List<Widget> rows = List();
-    for(int i = 0; i < 40; i++) {
+    for (int i = 0; i < 40; i++) {
       rows.add(generateRow(i));
     }
     return rows;
@@ -124,12 +133,20 @@ class _FirstScreenState extends State<FirstScreen> {
   InkWell generateInkWell(int index) {
     return InkWell(
       child: Container(
-        width: MediaQuery.of(context).size.width,
-          height: 0.125 * MediaQuery.of(context).size.height,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
+          height: 0.125 * MediaQuery
+              .of(context)
+              .size
+              .height,
           decoration: BoxDecoration(
               border: gVars.tappedIndex != index
-                  ? Border.all(color: Colors.black12)
-                  : Border.all(color: Colors.pink)),
+                  ? Border(bottom: BorderSide(color: Colors.black12),
+                  top: BorderSide(color: Colors.black12))
+                  : Border(bottom: BorderSide(width: 3.0, color: Colors.pink),
+                  top: BorderSide(width: 3.0, color: Colors.pink))),
           child: generateWeatherRows()[index]),
       onTap: () {
         gVars.tappedIndex = index;
@@ -138,9 +155,6 @@ class _FirstScreenState extends State<FirstScreen> {
           BlocProvider.of<MainCubit>(
               context)
               .toFirstScreen();
-        } else {
-          print(
-              'you are already on that screen');
         }
       },
     );
@@ -162,65 +176,72 @@ class _FirstScreenState extends State<FirstScreen> {
     return inkWells;
   }
 
-  Future<List<ListElement>> getListElement () async {
+  Future<List<ListElement>> getListElement() async {
     Response response;
     Dio dio = new Dio();
     //    normally i'd make request using this apiStr below, but something is wrong with getting locality, it is just an empty string in 99% of project runs. so i simply put Minsk in the city parameter of my request
     //          String apiStr = 'https://api.openweathermap.org/data/2.5/forecast?q=' + currentCity.toString() + '&cnt=40&appid=78cdfa458cf0d880d857d4b558dd9286';
     //          response = await dio.get(apiStr);
-    response = await dio.get('https://api.openweathermap.org/data/2.5/forecast?q=Minsk&cnt=40&appid=78cdfa458cf0d880d857d4b558dd9286');
-        if(response.statusCode == 200) {
-          for (int i = 0; i < 40; i++) {
-            listElement[i] = ListElement.fromJson(response.data['list'][i]);
-            print(response.data['list'][i]);
-          }
-          String tempDate = listElement[0].dtTxt.toString();
-          var splitted = tempDate.split(" ");
-          print(splitted[1]);
-          if (splitted[1] == '00:00:00.000') {
-            gVars.todayK = 7;
-          } else if (splitted[1] == '03:00:00.000') {
-            gVars.todayK = 6;
-          } else if (splitted[1] == '06:00:00.000') {
-            gVars.todayK = 5;
-          } else if (splitted[1] == '09:00:00.000') {
-            gVars.todayK = 4;
-          } else if (splitted[1] == '12:00:00.000') {
-            gVars.todayK = 3;
-          } else if (splitted[1] == '15:00:00.000') {
-            gVars.todayK = 2;
-          } else if (splitted[1] == '18:00:00.000') {
-            gVars.todayK = 1;
-          } else if (splitted[1] == '21:00:00.000') {
-            gVars.todayK = 0;
-          }
-       return listElement;
+    response = await dio.get(
+        'https://api.openweathermap.org/data/2.5/forecast?q=Minsk&cnt=40&appid=78cdfa458cf0d880d857d4b558dd9286');
+    if (response.statusCode == 200) {
+      for (int i = 0; i < 40; i++) {
+        listElement[i] = ListElement.fromJson(response.data['list'][i]);
+      }
+      String tempDate = listElement[0].dtTxt.toString();
+      var splitted = tempDate.split(" ");
+      if (splitted[1] == '00:00:00.000') {
+        gVars.todayK = 7;
+      } else if (splitted[1] == '03:00:00.000') {
+        gVars.todayK = 6;
+      } else if (splitted[1] == '06:00:00.000') {
+        gVars.todayK = 5;
+      } else if (splitted[1] == '09:00:00.000') {
+        gVars.todayK = 4;
+      } else if (splitted[1] == '12:00:00.000') {
+        gVars.todayK = 3;
+      } else if (splitted[1] == '15:00:00.000') {
+        gVars.todayK = 2;
+      } else if (splitted[1] == '18:00:00.000') {
+        gVars.todayK = 1;
+      } else if (splitted[1] == '21:00:00.000') {
+        gVars.todayK = 0;
+      }
+      return listElement;
     } else {
-    print("Invalid data");
+      print("Invalid data");
     }
-        return null;
+    return null;
   }
 
   String getDiraction() {
-    if (listElement[gVars.tappedIndex].wind.deg <= 22.5 || listElement[gVars.tappedIndex].wind.deg > 337.5) {
+    if (listElement[gVars.tappedIndex].wind.deg <= 22.5 ||
+        listElement[gVars.tappedIndex].wind.deg > 337.5) {
       return 'N';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 22.5 && listElement[gVars.tappedIndex].wind.deg <= 67.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 22.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 67.5) {
       return 'NW';
-    } else if(listElement[gVars.tappedIndex].wind.deg > 67.5 && listElement[gVars.tappedIndex].wind.deg <= 112.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 67.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 112.5) {
       return 'W';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 112.5 && listElement[gVars.tappedIndex].wind.deg <= 157.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 112.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 157.5) {
       return 'SW';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 157.5 && listElement[gVars.tappedIndex].wind.deg <= 202.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 157.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 202.5) {
       return 'S';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 202.5 && listElement[gVars.tappedIndex].wind.deg <= 247.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 202.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 247.5) {
       return 'SE';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 247.5 && listElement[gVars.tappedIndex].wind.deg <= 292.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 247.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 292.5) {
       return 'E';
-    } else if (listElement[gVars.tappedIndex].wind.deg > 292.5 && listElement[gVars.tappedIndex].wind.deg <= 337.5) {
+    } else if (listElement[gVars.tappedIndex].wind.deg > 292.5 &&
+        listElement[gVars.tappedIndex].wind.deg <= 337.5) {
       return 'NE';
     }
     return ' ';
-    }
+  }
 
   _showThatCopied() {
     showDialog(
@@ -230,7 +251,8 @@ class _FirstScreenState extends State<FirstScreen> {
             Navigator.of(context).pop(true);
           });
           return AlertDialog(
-            title: Text('Copied to clipboard', style: TextStyle(fontSize: 20, fontStyle: FontStyle.italic, color: Colors.pink)),
+            title: Text('Copied to clipboard', style: TextStyle(
+                fontSize: 20, fontStyle: FontStyle.italic, color: Colors.pink)),
           );
         });
   }
@@ -244,7 +266,9 @@ class _FirstScreenState extends State<FirstScreen> {
             if (listE.connectionState == ConnectionState.none ||
                 listE.connectionState == ConnectionState.waiting) {
               return Container(
-                child: Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.pink))));
+                  child: Center(child: CircularProgressIndicator(
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                          Colors.pink))));
             } else {
               return Container(
                   height: MediaQuery
@@ -276,7 +300,7 @@ class _FirstScreenState extends State<FirstScreen> {
                             decoration: BoxDecoration(
                                 border:
                                 Border(bottom: BorderSide(color: Colors
-                                    .black))),
+                                    .black54))),
                             child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -305,7 +329,9 @@ class _FirstScreenState extends State<FirstScreen> {
                                             listElement[gVars.tappedIndex].dtTxt
                                                 .toString().split(':')[1],
                                         style: TextStyle(
-                                            color: Colors.black, fontSize: 23, fontStyle: FontStyle.italic)),
+                                            color: Colors.black,
+                                            fontSize: 23,
+                                            fontStyle: FontStyle.italic)),
                                   )
                                 ])),
                         if (stateIndex == 0) Container(
@@ -319,11 +345,17 @@ class _FirstScreenState extends State<FirstScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Container(
-                                      color: Colors.pink[100],
                                       width: MediaQuery
                                           .of(context)
                                           .size
                                           .width,
+                                      decoration: BoxDecoration(
+                                          color: Colors.pink[100],
+                                          border:
+                                          Border(
+                                              bottom: BorderSide(color: Colors
+                                                  .black54))),
+
                                       child: Text('Today', style: TextStyle(
                                           fontSize: 17,
                                           fontStyle: FontStyle.italic),
@@ -351,11 +383,18 @@ class _FirstScreenState extends State<FirstScreen> {
                                       ),
                                     ),
                                     Container(
-                                      color: Colors.pink[100],
                                       width: MediaQuery
                                           .of(context)
                                           .size
                                           .width,
+                                      decoration: BoxDecoration(
+                                          color: Colors.pink[100],
+                                          border:
+                                          Border(
+                                              bottom: BorderSide(color: Colors
+                                                  .black54),
+                                              top: BorderSide(color: Colors
+                                                  .black54))),
                                       child: Text(
                                           listElement[gVars.todayK + 1].dtTxt
                                               .toString().split(" ")[0],
@@ -378,11 +417,18 @@ class _FirstScreenState extends State<FirstScreen> {
                                       ),
                                     ),
                                     Container(
-                                      color: Colors.pink[100],
                                       width: MediaQuery
                                           .of(context)
                                           .size
                                           .width,
+                                      decoration: BoxDecoration(
+                                          color: Colors.pink[100],
+                                          border:
+                                          Border(
+                                              bottom: BorderSide(color: Colors
+                                                  .black54),
+                                              top: BorderSide(color: Colors
+                                                  .black54))),
                                       child: Text(
                                           listElement[gVars.todayK + 9].dtTxt
                                               .toString().split(" ")[0],
@@ -405,11 +451,18 @@ class _FirstScreenState extends State<FirstScreen> {
                                       ),
                                     ),
                                     Container(
-                                      color: Colors.pink[100],
                                       width: MediaQuery
                                           .of(context)
                                           .size
                                           .width,
+                                      decoration: BoxDecoration(
+                                          color: Colors.pink[100],
+                                          border:
+                                          Border(
+                                              bottom: BorderSide(color: Colors
+                                                  .black54),
+                                              top: BorderSide(color: Colors
+                                                  .black54))),
                                       child: Text(
                                           listElement[gVars.todayK + 17].dtTxt
                                               .toString().split(" ")[0],
@@ -432,11 +485,18 @@ class _FirstScreenState extends State<FirstScreen> {
                                       ),
                                     ),
                                     Container(
-                                      color: Colors.pink[100],
                                       width: MediaQuery
                                           .of(context)
                                           .size
                                           .width,
+                                      decoration: BoxDecoration(
+                                          color: Colors.pink[100],
+                                          border:
+                                          Border(
+                                              bottom: BorderSide(color: Colors
+                                                  .black54),
+                                              top: BorderSide(color: Colors
+                                                  .black54))),
                                       child: Text(
                                           listElement[gVars.todayK + 25].dtTxt
                                               .toString().split(" ")[0],
@@ -497,7 +557,8 @@ class _FirstScreenState extends State<FirstScreen> {
                                                 .temp - 273.15)
                                                 .toStringAsPrecision(2) +
                                                 '\u00B0C  |  ' +
-                                                listElement[gVars.tappedIndex].weather[0].description,
+                                                listElement[gVars.tappedIndex]
+                                                    .weather[0].description,
                                             style: TextStyle(fontSize: 30,
                                                 fontWeight: FontWeight.bold,
                                                 fontStyle: FontStyle.italic,
@@ -632,19 +693,61 @@ class _FirstScreenState extends State<FirstScreen> {
                                     child: ConstrainedBox(
                                         constraints: BoxConstraints.expand(),
                                         child: RaisedButton(
-                                            shape: RoundedRectangleBorder(side: BorderSide(color: Colors.black)),
+                                            shape: RoundedRectangleBorder(
+                                                side: BorderSide(
+                                                    color: Colors.black)),
                                             onPressed: () {
                                               print('shared');
-                                              Clipboard.setData(ClipboardData(text: 'Weather forecast on ' + listElement[gVars.tappedIndex].dtTxt.toString().split(':')[0] + ':' + listElement[gVars.tappedIndex].dtTxt.toString().split(':')[1] + '\n' +
-                                                  'temperature is ' + (listElement[gVars.tappedIndex].main.temp - 273.15).toStringAsPrecision(2) + 'degrees celsius;\n' +
-                                                  'pressure is ' + listElement[gVars.tappedIndex].main.pressure.toString() + ' hPa;\n' +
-                                                  'humidity is ' + listElement[gVars.tappedIndex].main.humidity.toString() + ' %;\n' +
-                                                  'rainfall is ' + (listElement[gVars.tappedIndex].rain != null ? (listElement[gVars.tappedIndex].rain.the3H.toString() + ' mm') : '0 mm') + ';\n' +
-                                                  'wind is ' + listElement[gVars.tappedIndex].wind.speed.toString() + 'km/h with ' + getDiraction() + ' direction.'));
+                                              Clipboard.setData(ClipboardData(
+                                                  text: 'Weather forecast on ' +
+                                                      listElement[gVars
+                                                          .tappedIndex].dtTxt
+                                                          .toString().split(
+                                                          ':')[0] + ':' +
+                                                      listElement[gVars
+                                                          .tappedIndex].dtTxt
+                                                          .toString().split(
+                                                          ':')[1] + '\n' +
+                                                      'temperature is ' +
+                                                      (listElement[gVars
+                                                          .tappedIndex].main
+                                                          .temp - 273.15)
+                                                          .toStringAsPrecision(
+                                                          2) +
+                                                      'degrees celsius;\n' +
+                                                      'pressure is ' +
+                                                      listElement[gVars
+                                                          .tappedIndex].main
+                                                          .pressure.toString() +
+                                                      ' hPa;\n' +
+                                                      'humidity is ' +
+                                                      listElement[gVars
+                                                          .tappedIndex].main
+                                                          .humidity.toString() +
+                                                      ' %;\n' +
+                                                      'rainfall is ' +
+                                                      (listElement[gVars
+                                                          .tappedIndex].rain !=
+                                                          null
+                                                          ? (listElement[gVars
+                                                          .tappedIndex].rain
+                                                          .the3H.toString() +
+                                                          ' mm')
+                                                          : '0 mm') + ';\n' +
+                                                      'wind is ' +
+                                                      listElement[gVars
+                                                          .tappedIndex].wind
+                                                          .speed.toString() +
+                                                      'km/h with ' +
+                                                      getDiraction() +
+                                                      ' direction.'));
                                               _showThatCopied();
                                             },
                                             padding: EdgeInsets.all(0.0),
-                                            child: Text('share', style: TextStyle(fontStyle: FontStyle.italic))))),
+                                            child: Text('share',
+                                                style: TextStyle(
+                                                    fontStyle: FontStyle
+                                                        .italic))))),
                               ])),
                         Container(
                           height: 0.1 * MediaQuery
@@ -657,7 +760,7 @@ class _FirstScreenState extends State<FirstScreen> {
                               .width,
                           decoration: BoxDecoration(
                               border: Border(top: BorderSide(color: Colors
-                                  .black))),
+                                  .black54))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -668,7 +771,11 @@ class _FirstScreenState extends State<FirstScreen> {
                                   child: ConstrainedBox(
                                       constraints: BoxConstraints.expand(),
                                       child: RaisedButton(
-                                          shape: RoundedRectangleBorder(side: BorderSide(color: stateIndex == 1 ? (Colors.pink) : (Colors.black))),
+                                          shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                  color: stateIndex == 1
+                                                      ? (Colors.pink)
+                                                      : (Colors.black))),
                                           onPressed: () {
                                             print('1st button pressed');
                                             if (stateIndex == 0) {
@@ -682,14 +789,23 @@ class _FirstScreenState extends State<FirstScreen> {
                                             }
                                           },
                                           padding: EdgeInsets.all(0.0),
-                                          child: (Text('details', style: TextStyle(fontStyle: FontStyle.italic, color: stateIndex == 1 ? (Colors.pink): (Colors.black))))))),
+                                          child: (Text('details',
+                                              style: TextStyle(
+                                                  fontStyle: FontStyle.italic,
+                                                  color: stateIndex == 1
+                                                      ? (Colors.pink)
+                                                      : (Colors.black))))))),
                               Container(
                                   width: 66.0 * 1.5,
                                   height: 32.0 * 1.5,
                                   child: ConstrainedBox(
                                       constraints: BoxConstraints.expand(),
                                       child: RaisedButton(
-                                        shape: RoundedRectangleBorder(side: BorderSide(color: stateIndex == 0 ? (Colors.pink) : (Colors.black))),
+                                          shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                  color: stateIndex == 0
+                                                      ? (Colors.pink)
+                                                      : (Colors.black))),
                                           onPressed: () {
                                             print('2nd button pressed');
                                             if (stateIndex == 1) {
@@ -703,7 +819,12 @@ class _FirstScreenState extends State<FirstScreen> {
                                             }
                                           },
                                           padding: EdgeInsets.all(0.0),
-                                          child: (Text('forecast', style: TextStyle(fontStyle: FontStyle.italic, color: stateIndex == 0 ? (Colors.pink) : (Colors.black))))))),
+                                          child: (Text('forecast',
+                                              style: TextStyle(
+                                                  fontStyle: FontStyle.italic,
+                                                  color: stateIndex == 0
+                                                      ? (Colors.pink)
+                                                      : (Colors.black))))))),
                             ],
                           ),
                         ),
@@ -711,6 +832,6 @@ class _FirstScreenState extends State<FirstScreen> {
             }
           },
         )
-      );
+    );
   }
 }
